@@ -1,32 +1,39 @@
+import os
 import asyncpg
 import ssl
-from app.config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
 
 pool: asyncpg.Pool | None = None
+
+# Use DATABASE_URL if available (Render), otherwise build from components
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 async def create_pool():
     """Create the asyncpg connection pool and initialize schema."""
     global pool
 
-    # Render's PostgreSQL requires SSL
-    is_production = DB_HOST != "localhost" and DB_HOST != "127.0.0.1"
-    ssl_ctx = ssl.create_default_context() if is_production else None
-    if ssl_ctx:
+    if DATABASE_URL:
+        # Production: use DATABASE_URL directly (Render provides this)
+        # Render URLs start with postgres:// but asyncpg needs postgresql://
+        dsn = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        ssl_ctx = ssl.create_default_context()
         ssl_ctx.check_hostname = False
         ssl_ctx.verify_mode = ssl.CERT_NONE
+        pool = await asyncpg.create_pool(dsn=dsn, min_size=2, max_size=10, ssl=ssl_ctx)
+    else:
+        # Local development: use individual components
+        from app.config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+        pool = await asyncpg.create_pool(
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD if DB_PASSWORD else None,
+            min_size=2,
+            max_size=10,
+        )
 
-    pool = await asyncpg.create_pool(
-        host=DB_HOST,
-        port=DB_PORT,
-        database=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD if DB_PASSWORD else None,
-        min_size=2,
-        max_size=10,
-        ssl=ssl_ctx,
-    )
     # Create tables on startup
     async with pool.acquire() as conn:
         await conn.execute("""

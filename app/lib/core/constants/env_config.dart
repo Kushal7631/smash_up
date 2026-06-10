@@ -1,7 +1,7 @@
 /// Environment configuration for managing API base URL.
 /// Change the active environment here before running.
 class EnvConfig {
-  static const Environment _currentEnv = Environment.dev;
+  static const Environment _currentEnv = Environment.production;
 
   static String get baseUrl {
     switch (_currentEnv) {
@@ -10,7 +10,7 @@ class EnvConfig {
       case Environment.staging:
         return 'http://192.168.1.100:8000'; // Replace with your LAN IP
       case Environment.production:
-        return 'https://api.smashup.com'; // Production server
+        return 'https://smashup-api.onrender.com'; // Render production server
       case Environment.ios:
         return 'http://localhost:8000'; // iOS simulator
       case Environment.physical:
