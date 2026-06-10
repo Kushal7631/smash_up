@@ -1,4 +1,5 @@
 import asyncpg
+import ssl
 from app.config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
 
@@ -8,6 +9,14 @@ pool: asyncpg.Pool | None = None
 async def create_pool():
     """Create the asyncpg connection pool and initialize schema."""
     global pool
+
+    # Render's PostgreSQL requires SSL
+    is_production = DB_HOST != "localhost" and DB_HOST != "127.0.0.1"
+    ssl_ctx = ssl.create_default_context() if is_production else None
+    if ssl_ctx:
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
+
     pool = await asyncpg.create_pool(
         host=DB_HOST,
         port=DB_PORT,
@@ -16,6 +25,7 @@ async def create_pool():
         password=DB_PASSWORD if DB_PASSWORD else None,
         min_size=2,
         max_size=10,
+        ssl=ssl_ctx,
     )
     # Create tables on startup
     async with pool.acquire() as conn:

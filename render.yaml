@@ -1,0 +1,38 @@
+databases:
+  - name: quickslot-db
+    plan: free
+    databaseName: quickslot
+    user: quickslot_user
+
+services:
+  - type: web
+    name: smashup-api
+    plan: free
+    runtime: python
+    buildCommand: pip install -r server/requirements.txt
+    startCommand: cd server && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: quickslot-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: quickslot-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: quickslot-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: quickslot-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: quickslot-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.12.0"
