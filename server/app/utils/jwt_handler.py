@@ -11,7 +11,7 @@ security = HTTPBearer()
 def create_token(user_id: int, email: str) -> str:
     """Create a JWT token for the given user."""
     payload = {
-        "sub": user_id,
+        "sub": str(user_id),  # JWT spec requires sub to be a string
         "email": email,
         "iat": datetime.now(timezone.utc),
         "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS),

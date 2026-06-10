@@ -146,7 +146,9 @@ class _RegisterViewState extends State<RegisterView> {
                               if (v == null || v.trim().isEmpty) {
                                 return 'Enter your email';
                               }
-                              if (!v.contains('@')) return 'Invalid email';
+                              if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v)) {
+                                return 'Enter a valid email (e.g. user@example.com)';
+                              }
                               return null;
                             },
                           ),

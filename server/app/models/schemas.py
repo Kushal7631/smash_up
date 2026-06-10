@@ -11,6 +11,14 @@ class RegisterRequest(BaseModel):
     email: str = Field(..., description="User's email address")
     password: str = Field(..., min_length=6, description="User's password")
 
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(pattern, v):
+            raise ValueError('Please enter a valid email address (e.g. user@example.com)')
+        return v.lower()
+
     @field_validator('password')
     @classmethod
     def validate_password(cls, v: str) -> str:
@@ -30,6 +38,14 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str = Field(..., description="User's email address")
     password: str = Field(..., description="User's password")
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(pattern, v):
+            raise ValueError('Please enter a valid email address')
+        return v.lower()
 
 
 class UserResponse(BaseModel):
