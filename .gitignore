@@ -1,0 +1,32 @@
+# ──── Python / Backend ────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+*.db
+
+# ──── Flutter / App ────
+app/.dart_tool/
+app/.packages
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/android/.gradle/
+app/android/app/build/
+app/android/local.properties
+app/ios/Pods/
+app/ios/.symlinks/
+app/.idea/
+app/*.iml
+
+# ──── IDE ────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# ──── OS ────
+Thumbs.db
+README.md
