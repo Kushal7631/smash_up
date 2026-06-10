@@ -1,16 +1,17 @@
 import asyncpg
-import hashlib
+import bcrypt
 from fastapi import HTTPException
 
 
 def _hash_password(password: str) -> str:
-    """Hash password using SHA-256. Simple but sufficient for this scope."""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Hash password using bcrypt with auto-generated salt."""
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 
 def _verify_password(password: str, hashed: str) -> bool:
-    """Verify password against stored hash."""
-    return _hash_password(password) == hashed
+    """Verify password against bcrypt hash."""
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
 
 class AuthService:

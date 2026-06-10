@@ -21,13 +21,13 @@ class MyBookingsViewModel extends ChangeNotifier {
     _cancelMessage = null;
   }
 
-  Future<void> fetchBookings(int userId) async {
+  Future<void> fetchBookings() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _bookings = await _apiService.getUserBookings(userId);
+      _bookings = await _apiService.getMyBookings();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -36,11 +36,11 @@ class MyBookingsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> cancelBooking(int bookingId, int userId) async {
+  Future<void> cancelBooking(int bookingId) async {
     try {
-      await _apiService.cancelBooking(bookingId, userId);
+      await _apiService.cancelBooking(bookingId);
       _cancelMessage = 'Booking cancelled';
-      await fetchBookings(userId); // Refresh list
+      await fetchBookings(); // Refresh list
     } catch (e) {
       _cancelMessage = 'Failed to cancel: ${e.toString()}';
       notifyListeners();

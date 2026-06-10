@@ -30,7 +30,8 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _currentUser = await _apiService.login(email, password);
+      final authResp = await _apiService.login(email, password);
+      _currentUser = authResp.user;
       return true;
     } catch (e) {
       _error = e.toString();
@@ -47,7 +48,8 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _currentUser = await _apiService.register(name, email, password);
+      final authResp = await _apiService.register(name, email, password);
+      _currentUser = authResp.user;
       return true;
     } catch (e) {
       _error = e.toString();
@@ -66,7 +68,6 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       _currentUser = await _apiService.updateProfile(
-        _currentUser!.id,
         name: name,
         phone: phone,
         bio: bio,
@@ -84,6 +85,7 @@ class LoginViewModel extends ChangeNotifier {
 
   void logout() {
     _currentUser = null;
+    _apiService.clearToken();
     notifyListeners();
   }
 }

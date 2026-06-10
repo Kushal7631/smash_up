@@ -7,12 +7,36 @@ import '../models/user.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/exceptions/app_exception.dart';
 
+class AuthResponse {
+  final User user;
+  final String token;
+
+  AuthResponse({required this.user, required this.token});
+
+  factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    return AuthResponse(
+      user: User.fromJson(json['user']),
+      token: json['token'],
+    );
+  }
+}
+
 class ApiService {
   final http.Client _client = http.Client();
 
-  Map<String, String> _headers(int userId) => {
+  /// JWT token stored after login/register
+  String? _token;
+
+  /// Set the token after successful auth
+  void setToken(String token) => _token = token;
+
+  /// Clear token on logout
+  void clearToken() => _token = null;
+
+  /// Auth headers with Bearer token
+  Map<String, String> _authHeaders() => {
         'Content-Type': 'application/json',
-        'X-User-Id': userId.toString(),
+        if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
   /// Handle HTTP response errors
@@ -31,6 +55,18 @@ class ApiService {
       case 403:
         final body = jsonDecode(response.body);
         throw ForbiddenException(body['detail'] ?? 'Not authorized');
+      case 422:
+        String message = 'Validation error';
+        try {
+          final body = jsonDecode(response.body);
+          final details = body['detail'];
+          if (details is List && details.isNotEmpty) {
+            message = details[0]['msg'] ?? message;
+          } else if (details is String) {
+            message = details;
+          }
+        } catch (_) {}
+        throw ApiException(message, statusCode: 422);
       default:
         if (response.statusCode >= 400) {
           String message = 'Something went wrong';
@@ -45,36 +81,40 @@ class ApiService {
 
   // ──── Auth ────
 
-  Future<User> register(String name, String email, String password) async {
+  Future<AuthResponse> register(String name, String email, String password) async {
     final response = await _client.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.authRegister}'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'name': name, 'email': email, 'password': password}),
     );
     _handleError(response);
-    return User.fromJson(jsonDecode(response.body));
+    final authResp = AuthResponse.fromJson(jsonDecode(response.body));
+    _token = authResp.token;
+    return authResp;
   }
 
-  Future<User> login(String email, String password) async {
+  Future<AuthResponse> login(String email, String password) async {
     final response = await _client.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.authLogin}'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
     _handleError(response);
-    return User.fromJson(jsonDecode(response.body));
+    final authResp = AuthResponse.fromJson(jsonDecode(response.body));
+    _token = authResp.token;
+    return authResp;
   }
 
-  Future<User> getProfile(int userId) async {
+  Future<User> getProfile() async {
     final response = await _client.get(
       Uri.parse('${ApiConstants.baseUrl}/auth/profile'),
-      headers: _headers(userId),
+      headers: _authHeaders(),
     );
     _handleError(response);
     return User.fromJson(jsonDecode(response.body));
   }
 
-  Future<User> updateProfile(int userId, {String? name, String? phone, String? bio, String? avatar}) async {
+  Future<User> updateProfile({String? name, String? phone, String? bio, String? avatar}) async {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
     if (phone != null) body['phone'] = phone;
@@ -83,7 +123,7 @@ class ApiService {
 
     final response = await _client.put(
       Uri.parse('${ApiConstants.baseUrl}/auth/profile'),
-      headers: _headers(userId),
+      headers: _authHeaders(),
       body: jsonEncode(body),
     );
     _handleError(response);
@@ -115,30 +155,30 @@ class ApiService {
 
   // ──── Bookings ────
 
-  Future<Booking> createBooking(int slotId, int userId) async {
+  Future<Booking> createBooking(int slotId) async {
     final response = await _client.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.bookings}'),
-      headers: _headers(userId),
+      headers: _authHeaders(),
       body: jsonEncode({'slot_id': slotId}),
     );
     _handleError(response);
     return Booking.fromJson(jsonDecode(response.body));
   }
 
-  Future<void> cancelBooking(int bookingId, int userId) async {
+  Future<void> cancelBooking(int bookingId) async {
     final response = await _client.delete(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.bookings}/$bookingId'),
-      headers: _headers(userId),
+      headers: _authHeaders(),
     );
     _handleError(response);
   }
 
   // ──── User Bookings ────
 
-  Future<List<Booking>> getUserBookings(int userId) async {
+  Future<List<Booking>> getMyBookings() async {
     final response = await _client.get(
-      Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.users}/$userId/bookings'),
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.users}/me/bookings'),
+      headers: _authHeaders(),
     );
     _handleError(response);
     final List<dynamic> data = jsonDecode(response.body);

@@ -173,7 +173,19 @@ class _RegisterViewState extends State<RegisterView> {
                               if (v == null || v.isEmpty) {
                                 return 'Enter a password';
                               }
-                              if (v.length < 4) return 'Min 4 characters';
+                              if (v.length < 6) return 'Min 6 characters';
+                              if (!v.contains(RegExp(r'[A-Z]'))) {
+                                return 'Must contain an uppercase letter';
+                              }
+                              if (!v.contains(RegExp(r'[a-z]'))) {
+                                return 'Must contain a lowercase letter';
+                              }
+                              if (!v.contains(RegExp(r'[0-9]'))) {
+                                return 'Must contain a number';
+                              }
+                              if (!v.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                                return 'Must contain a special character';
+                              }
                               return null;
                             },
                           ),

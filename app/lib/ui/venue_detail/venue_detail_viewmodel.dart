@@ -54,14 +54,14 @@ class VenueDetailViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> bookSlot(int slotId, int userId, int venueId) async {
+  Future<void> bookSlot(int slotId, int venueId) async {
     _isBooking = true;
     _bookingSuccess = null;
     _bookingError = null;
     notifyListeners();
 
     try {
-      await _apiService.createBooking(slotId, userId);
+      await _apiService.createBooking(slotId);
       _bookingSuccess = 'Booked successfully! ✅';
       await fetchSlots(venueId); // Refresh grid
     } on ConflictException {

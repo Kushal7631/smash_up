@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import 'my_bookings_viewmodel.dart';
-import '../login/login_viewmodel.dart';
 import '../widgets/state_widgets.dart';
 
 class MyBookingsView extends StatefulWidget {
@@ -17,13 +16,11 @@ class _MyBookingsViewState extends State<MyBookingsView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId = context.read<LoginViewModel>().userId!;
-      context.read<MyBookingsViewModel>().fetchBookings(userId);
+      context.read<MyBookingsViewModel>().fetchBookings();
     });
   }
 
   void _confirmCancel(int bookingId, String? venueName) {
-    final userId = context.read<LoginViewModel>().userId!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -41,7 +38,7 @@ class _MyBookingsViewState extends State<MyBookingsView> {
               Navigator.pop(ctx);
               context
                   .read<MyBookingsViewModel>()
-                  .cancelBooking(bookingId, userId);
+                  .cancelBooking(bookingId);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
@@ -56,7 +53,6 @@ class _MyBookingsViewState extends State<MyBookingsView> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<MyBookingsViewModel>();
-    final userVm = context.watch<LoginViewModel>();
 
     // Cancel feedback
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -118,7 +114,7 @@ class _MyBookingsViewState extends State<MyBookingsView> {
             SliverFillRemaining(
               child: ErrorView(
                 message: vm.error!,
-                onRetry: () => vm.fetchBookings(userVm.userId!),
+                onRetry: () => vm.fetchBookings(),
               ),
             )
           else if (vm.bookings.isEmpty)

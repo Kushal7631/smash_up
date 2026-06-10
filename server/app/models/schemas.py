@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from datetime import date, time, datetime
 from typing import Optional
+import re
 
 
 # ──── Auth Models ────
@@ -8,7 +9,22 @@ from typing import Optional
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=1, description="User's display name")
     email: str = Field(..., description="User's email address")
-    password: str = Field(..., min_length=4, description="User's password")
+    password: str = Field(..., min_length=6, description="User's password")
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError('Password must be at least 6 characters')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[0-9]', v):
+            raise ValueError('Password must contain at least one number')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+            raise ValueError('Password must contain at least one special character')
+        return v
 
 
 class LoginRequest(BaseModel):

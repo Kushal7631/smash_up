@@ -47,7 +47,6 @@ class _VenueDetailViewState extends State<VenueDetailView> {
   }
 
   void _confirmBooking(int slotId, String displayTime) {
-    final userId = context.read<LoginViewModel>().userId!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -65,7 +64,7 @@ class _VenueDetailViewState extends State<VenueDetailView> {
               Navigator.pop(ctx);
               context
                   .read<VenueDetailViewModel>()
-                  .bookSlot(slotId, userId, widget.venue.id);
+                  .bookSlot(slotId, widget.venue.id);
             },
             child: const Text('Book Now'),
           ),

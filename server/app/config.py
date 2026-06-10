@@ -10,8 +10,10 @@ DB_NAME = os.getenv("DB_NAME", "quickslot")
 DB_USER = os.getenv("DB_USER", os.getenv("USER", "postgres"))
 DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
 
-# Valid hardcoded users
-VALID_USERS = ["user1", "user2", "user3"]
+# JWT Configuration
+JWT_SECRET = os.getenv("JWT_SECRET", "smashup-hackathon-secret-key-2026")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRY_HOURS = 24
 
 # Slot configuration
 SLOT_START_HOUR = 6   # 6 AM
